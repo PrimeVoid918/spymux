@@ -16,7 +16,6 @@ type App struct {
 	Cmd  string `toml:"cmd"`
 }
 
-// LoadConfig reads the TOML file or creates a default one if it's missing
 func LoadConfig() []App {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -43,12 +42,12 @@ func LoadConfig() []App {
 	if err != nil || len(conf.Apps) == 0 {
 		return DefaultApps()
 	}
-
 	return conf.Apps
 }
 
 func DefaultApps() []App {
 	return []App{
-		{Name: "TERMINAL", Cmd: "kitty --directory"},
+		{Name: "TERMINAL", Cmd: "kitty --directory {dir}"},
+		{Name: "NEOVIM", Cmd: "kitty -d {dir} nvim"},
 	}
 }

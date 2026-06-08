@@ -1,0 +1,17 @@
+spymux
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+
+.directory
+
+*.log
+
+.vscode/
+.idea/
+.notes

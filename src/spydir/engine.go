@@ -1,14 +1,14 @@
-package tui
+package spydir
 
 import (
 	"fmt"
-	"os/exec"
-	"strings"
-
 	"spymux/src/config"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"os/exec"
+	"strings"
 )
 
 var (
@@ -41,28 +41,15 @@ type Model struct {
 	Height int
 }
 
-func LoadDirs() []string {
-	out, _ := exec.Command("zoxide", "query", "-l").Output()
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	return lines
-}
-
 func InitialModel() Model {
 	return Model{
 		Apps: config.LoadConfig(),
-		Dirs: LoadDirs(),
+		Dirs: []string{"/home/user/code", "/home/user/downloads"}, // Placeholder or LoadDirs()
 	}
 }
 
 func (m Model) Init() tea.Cmd {
 	return nil
-}
-
-func padRight(s string, width int) string {
-	if len(s) >= width {
-		return s
-	}
-	return s + strings.Repeat(" ", width-len(s))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -179,4 +166,11 @@ func launch(app config.App, dir string) {
 		fullCmd = fmt.Sprintf("%s %s", app.Cmd, dir)
 	}
 	exec.Command("hyprctl", "dispatch", "exec", fullCmd).Run()
+}
+
+func padRight(s string, width int) string {
+	if len(s) >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-len(s))
 }
