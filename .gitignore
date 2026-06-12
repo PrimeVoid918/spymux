@@ -15,4 +15,5 @@ spymux
 .vscode/
 .idea/
 .notes
+.scripts
 /build
