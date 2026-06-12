@@ -15,3 +15,4 @@ spymux
 .vscode/
 .idea/
 .notes
+/build

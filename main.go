@@ -12,12 +12,10 @@ import (
 )
 
 func main() {
-	// Define fast CLI execution flags
 	dirMode := flag.Bool("d", false, "Launch spydir directly")
 	binMode := flag.Bool("b", false, "Launch spybin directly")
 	flag.Parse()
 
-	// 1. Instant execution paths via flags
 	if *dirMode {
 		runSpyDir()
 		return
@@ -27,7 +25,6 @@ func main() {
 		return
 	}
 
-	// 2. Fallback execution path: Show picker TUI
 	p := tea.NewProgram(tui.InitialPickerModel(), tea.WithAltScreen())
 	m, err := p.Run()
 	if err != nil {
@@ -35,7 +32,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Route based on what the user chose in the fallback UI
 	chosenMode := m.(tui.PickerModel).Choice
 	switch chosenMode {
 	case tui.ModeSpyDir:

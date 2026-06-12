@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// UI Color Style layout matching your Spydir aesthetics
 var (
 	promptStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)  // Neon Green
 	matchStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Faint(true) // Cyan match count
@@ -100,7 +99,6 @@ func (m Model) View() string {
 
 	var doc strings.Builder
 
-	// Header Search Row
 	stats := matchStyle.Render(fmt.Sprintf("(%d/%d applications)", len(m.Filtered), len(m.Apps)))
 	doc.WriteString(fmt.Sprintf("%s %s  %s\n", promptStyle.Render(""), m.Query, stats))
 
@@ -110,7 +108,6 @@ func (m Model) View() string {
 	}
 	doc.WriteString(borderStyle.Render(strings.Repeat("─", hrWidth)) + "\n")
 
-	// Frame matrix calculations for scrolling window limits
 	maxVisibleRows := m.Height - 4
 	if maxVisibleRows <= 0 {
 		maxVisibleRows = 5
@@ -155,10 +152,6 @@ func (m *Model) filterApps() {
 	m.Filtered = out
 }
 
-// ==========================================
-// System Desktop Entry Parser Logic Block
-// ==========================================
-
 func ScanDesktopFiles() []AppEntry {
 	home, _ := os.UserHomeDir()
 	searchPaths := []string{
@@ -176,7 +169,6 @@ func ScanDesktopFiles() []AppEntry {
 				return nil
 			}
 
-			// Blacklist filters mimicking your bash find string parameters
 			pLower := strings.ToLower(p)
 			if strings.Contains(pLower, "wine") || strings.Contains(pLower, "programs") ||
 				strings.Contains(pLower, "uninstall") || strings.Contains(pLower, "chrome apps") ||
@@ -189,7 +181,6 @@ func ScanDesktopFiles() []AppEntry {
 				return nil
 			}
 
-			// Core platform blacklists filter mapping
 			switch name {
 			case "Base", "Math", "Draw", "Writer", "Calc", "Impress":
 				return nil
@@ -228,12 +219,11 @@ func parseDesktopFile(filePath string) (string, string, bool) {
 			continue
 		}
 
-		// Track section switching brackets blocks
 		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
 			if line == "[Desktop Entry]" {
 				inMainSection = true
 			} else {
-				inMainSection = false // Left standard context area block loop (e.g. [Desktop Action])
+				inMainSection = false
 			}
 			continue
 		}
@@ -261,7 +251,6 @@ func parseDesktopFile(filePath string) (string, string, bool) {
 			}
 		case "Exec":
 			if execCmd == "" {
-				// Strip system parameters fields variables fields blocks (%u, %F, etc.)
 				idx := strings.Index(val, " %")
 				if idx != -1 {
 					execCmd = val[:idx]
@@ -314,6 +303,19 @@ func getIcon(name string) string {
 }
 
 func launchApp(execCmd string) {
-	// Directly dispatch out asynchronously to hyprctl window manager handler
-	_ = exec.Command("hyprctl", "dispatch", "exec", "--", execCmd).Start()
+	if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "" {
+		_ = exec.Command("hyprctl", "dispatch", "exec", "--", execCmd).Run()
+		return
+	}
+
+	cmd := exec.Command("sh", "-c", execCmd)
+
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.Stdin = nil
+
+	_ = cmd.Start()
+	if cmd.Process != nil {
+		_ = cmd.Process.Release()
+	}
 }

@@ -1,0 +1,1 @@
+bind = $mainMod SHIFT, return, exec, kitty --class fzf-pwd-select -e ~/.local/bin/fzf-pwd-select.sh

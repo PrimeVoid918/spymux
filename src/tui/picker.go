@@ -1,4 +1,3 @@
-// src/tui/picker.go
 package tui
 
 import (
