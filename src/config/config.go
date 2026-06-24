@@ -16,7 +16,7 @@ type App struct {
 	Cmd  string `toml:"cmd"`
 }
 
-func LoadConfig() []App {
+func LoadApps() []App {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return DefaultApps()

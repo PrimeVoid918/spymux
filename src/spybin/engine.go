@@ -8,17 +8,19 @@ import (
 	"path/filepath"
 	"strings"
 
+	config "spymux/src/config"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	promptStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)  // Neon Green
-	matchStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Faint(true) // Cyan match count
-	selectedRowStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12")).Bold(true)
-	normalRowStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
-	borderStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-)
+// var (
+// 	promptStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)  // Neon Green
+// 	matchStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Faint(true) // Cyan match count
+// 	selectedRowStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12")).Bold(true)
+// 	normalRowStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+// 	borderStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+// )
 
 type AppEntry struct {
 	DisplayName string
@@ -26,6 +28,14 @@ type AppEntry struct {
 }
 
 type Model struct {
+	Theme *config.AppTheme
+
+	PromptStyle      lipgloss.Style
+	MatchStyle       lipgloss.Style
+	SelectedRowStyle lipgloss.Style
+	NormalRowStyle   lipgloss.Style
+	BorderStyle      lipgloss.Style
+
 	Apps     []AppEntry
 	Filtered []AppEntry
 	Index    int
@@ -34,11 +44,23 @@ type Model struct {
 	Height   int
 }
 
-func InitialModel() Model {
+func InitialModel(theme *config.AppTheme) Model {
 	apps := ScanDesktopFiles()
+
+	promptStyle := lipgloss.NewStyle().Foreground(theme.Color(10)).Bold(true)
+	matchStyle := lipgloss.NewStyle().Foreground(theme.Color(14)).Faint(true)
+	selectedRowStyle := lipgloss.NewStyle().Foreground(theme.Color(12)).Bold(true)
+	normalRowStyle := lipgloss.NewStyle().Foreground(theme.Color(7))
+	borderStyle := lipgloss.NewStyle().Foreground(theme.Color(8))
 	return Model{
 		Apps:     apps,
 		Filtered: apps,
+
+		PromptStyle:      promptStyle,
+		MatchStyle:       matchStyle,
+		SelectedRowStyle: selectedRowStyle,
+		NormalRowStyle:   normalRowStyle,
+		BorderStyle:      borderStyle,
 	}
 }
 
@@ -99,14 +121,14 @@ func (m Model) View() string {
 
 	var doc strings.Builder
 
-	stats := matchStyle.Render(fmt.Sprintf("(%d/%d applications)", len(m.Filtered), len(m.Apps)))
-	doc.WriteString(fmt.Sprintf("%s %s  %s\n", promptStyle.Render(""), m.Query, stats))
+	stats := m.MatchStyle.Render(fmt.Sprintf("(%d/%d applications)", len(m.Filtered), len(m.Apps)))
+	doc.WriteString(fmt.Sprintf("%s %s  %s\n", m.PromptStyle.Render(""), m.Query, stats))
 
 	hrWidth := m.Width
 	if hrWidth > 60 {
 		hrWidth = 60
 	}
-	doc.WriteString(borderStyle.Render(strings.Repeat("─", hrWidth)) + "\n")
+	doc.WriteString(m.BorderStyle.Render(strings.Repeat("─", hrWidth)) + "\n")
 
 	maxVisibleRows := m.Height - 4
 	if maxVisibleRows <= 0 {
@@ -126,9 +148,9 @@ func (m Model) View() string {
 	for i := startIdx; i < endIdx; i++ {
 		app := m.Filtered[i]
 		if i == m.Index {
-			doc.WriteString(selectedRowStyle.Render(fmt.Sprintf(" ▸ %s", app.DisplayName)) + "\n")
+			doc.WriteString(m.SelectedRowStyle.Render(fmt.Sprintf(" ▸ %s", app.DisplayName)) + "\n")
 		} else {
-			doc.WriteString(normalRowStyle.Render(fmt.Sprintf("   %s", app.DisplayName)) + "\n")
+			doc.WriteString(m.NormalRowStyle.Render(fmt.Sprintf("   %s", app.DisplayName)) + "\n")
 		}
 	}
 

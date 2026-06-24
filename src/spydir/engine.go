@@ -2,7 +2,7 @@ package spydir
 
 import (
 	"fmt"
-	"spymux/src/config"
+	config "spymux/src/config"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,24 +13,13 @@ import (
 	"strings"
 )
 
-var (
-	selectedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("0")).
-			Background(lipgloss.Color("12")).
-			Bold(true)
-
-	normalStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("7"))
-
-	faintStyle = lipgloss.NewStyle().
-			Faint(true)
-
-	matchCountStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("2")).
-			Bold(true)
-)
-
 type Model struct {
+	Theme           *config.AppTheme
+	SelectedStyle   lipgloss.Style
+	NormalStyle     lipgloss.Style
+	FaintStyle      lipgloss.Style
+	MatchCountStyle lipgloss.Style
+
 	Apps      []config.App
 	ModeIndex int
 
@@ -50,15 +39,25 @@ type ZoxideDirs struct {
 	Path  string
 }
 
-func InitialModel() Model {
+func InitialModel(theme *config.AppTheme) Model {
 	dirs, err := getZoxideDirs()
-	apps := config.LoadConfig()
+	apps := config.LoadApps()
+
+	selectedStyle := lipgloss.NewStyle().Foreground(theme.Color(0)).Background(theme.Accent()).Bold(true)
+	normalStyle := lipgloss.NewStyle().Foreground(theme.Color(7))
+	faintStyle := lipgloss.NewStyle().Foreground(theme.Color(2))
+	matchCountStyle := lipgloss.NewStyle().Foreground(theme.Color(1))
 
 	return Model{
 		Apps:  apps,
 		Dirs:  dirs,
 		Err:   err,
 		Width: 80,
+
+		SelectedStyle:   selectedStyle,
+		NormalStyle:     normalStyle,
+		FaintStyle:      faintStyle,
+		MatchCountStyle: matchCountStyle,
 	}
 }
 
@@ -105,19 +104,19 @@ func (model Model) View() string {
 	for i, app := range model.Apps {
 		if i == model.ModeIndex {
 			token := " " + app.Name + " "
-			modeBar += selectedStyle.Render(token) + " "
+			modeBar += model.SelectedStyle.Render(token) + " "
 		} else {
 			token := "[" + app.Name + "]"
-			modeBar += normalStyle.Render(token) + " "
+			modeBar += model.NormalStyle.Render(token) + " "
 		}
 	}
 	strBuilder.WriteString(padRight(modeBar, model.Width) + "\n")
 
-	matchesStr := matchCountStyle.Render(fmt.Sprintf("%d", len(dirs)))
+	matchesStr := model.MatchCountStyle.Render(fmt.Sprintf("%d", len(dirs)))
 	stats := fmt.Sprintf(": %s (%s matches)", model.Query, matchesStr)
 	strBuilder.WriteString(padRight(stats, model.Width) + "\n")
 
-	strBuilder.WriteString(faintStyle.Render(strings.Repeat("─", model.Width)) + "\n")
+	strBuilder.WriteString(model.FaintStyle.Render(strings.Repeat("─", model.Width)) + "\n")
 
 	reservedLines := 4
 	maxVisibleDirs := model.Height - reservedLines
@@ -139,10 +138,10 @@ func (model Model) View() string {
 		var line string
 		if i == model.DirIndex {
 			rawLine := fmt.Sprintf("> %.2f %s", dir.Score, dir.Path)
-			line = selectedStyle.Render(padRight(rawLine, model.Width))
+			line = model.SelectedStyle.Render(padRight(rawLine, model.Width))
 		} else {
 			rawLine := fmt.Sprintf(" %.2f %s", dir.Score, dir.Path)
-			line = normalStyle.Render(padRight(rawLine, model.Width))
+			line = model.NormalStyle.Render(padRight(rawLine, model.Width))
 		}
 		strBuilder.WriteString(line + "\n")
 	}

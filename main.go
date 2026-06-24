@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"spymux/src/config"
 	"spymux/src/spybin"
 	"spymux/src/spydir"
 	"spymux/src/tui"
@@ -16,12 +17,17 @@ func main() {
 	binMode := flag.Bool("b", false, "Launch spybin directly")
 	flag.Parse()
 
+	theme, themeErr := config.LoadSystemTheme()
+	if themeErr != nil {
+		fmt.Printf("Error Loading theme: %s", themeErr)
+	}
+
 	if *dirMode {
-		runSpyDir()
+		runSpyDir(theme)
 		return
 	}
 	if *binMode {
-		runSpyBin()
+		runSpyBin(theme)
 		return
 	}
 
@@ -35,24 +41,24 @@ func main() {
 	chosenMode := m.(tui.PickerModel).Choice
 	switch chosenMode {
 	case tui.ModeSpyDir:
-		runSpyDir()
+		runSpyDir(theme)
 	case tui.ModeSpyBin:
-		runSpyBin()
+		runSpyBin(theme)
 	default:
 		os.Exit(0)
 	}
 }
 
-func runSpyDir() {
-	p := tea.NewProgram(spydir.InitialModel(), tea.WithAltScreen())
+func runSpyDir(theme *config.AppTheme) {
+	p := tea.NewProgram(spydir.InitialModel(theme), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("spydir failed: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runSpyBin() {
-	p := tea.NewProgram(spybin.InitialModel(), tea.WithAltScreen())
+func runSpyBin(theme *config.AppTheme) {
+	p := tea.NewProgram(spybin.InitialModel(theme), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("spybin failed: %v\n", err)
 		os.Exit(1)
