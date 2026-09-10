@@ -52,7 +52,7 @@ func defaultTheme() *AppTheme {
 }
 
 func LoadSystemTheme() (*AppTheme, error) {
-	walCachePath, pathErr := utils.WalCacheDir()
+	walCachePath, pathErr := utils.WalCachePath("colors.json")
 	if pathErr != nil {
 		return defaultTheme(), pathErr
 	}

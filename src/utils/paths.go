@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 func HomeDir() (string, error) {
@@ -16,27 +17,25 @@ func HomeDir() (string, error) {
 	return path.Clean(homeDir) + "/", nil
 }
 
-func WalCacheDir() (string, error) {
-	cachePath := ".cache/wal/colors.json"
-
-	homePath, pathErr := HomeDir()
-	if pathErr != nil {
-		return "", pathErr
+func WalCachePath(file string) (string, error) {
+	homePath, err := HomeDir()
+	if err != nil {
+		return "", err
 	}
 
-	fullPath := homePath + cachePath
-	info, err := os.Stat(fullPath)
+	fullPath := filepath.Join(homePath, ".cache", "wal", file)
 
+	info, err := os.Stat(fullPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return "", errors.New("wal colors.json cache file is missing")
+			return "", fmt.Errorf("wal cache file does not exist: %s", fullPath)
 		}
-		return "", fmt.Errorf("failed checking cache path %s: %w", fullPath, err)
+		return "", fmt.Errorf("failed checking wal cache path %s: %w", fullPath, err)
 	}
 
 	if info.IsDir() {
 		return "", fmt.Errorf("expected a file but found a directory at: %s", fullPath)
 	}
 
-	return path.Clean(fullPath), nil
+	return fullPath, nil
 }

@@ -14,6 +14,6 @@ spymux
 
 .vscode/
 .idea/
-.notes
+.spymux_obsidian
 .scripts
 /build
