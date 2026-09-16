@@ -56,20 +56,13 @@ func ScanDesktopFiles() ([]AppEntry, error) {
 				info os.FileInfo,
 				err error,
 			) error {
-				// ignore invalid things
-				// if err != nil || info.IsDir() || !strings.HasSuffix(info.Name(), ".desktop") {
-				// 	return nil
-				// }
 				if err != nil {
-					fmt.Printf("err is not nil: %s\n", err)
 					return err
 				}
 				if info.IsDir() {
-					fmt.Printf("info.IsDir is not nil: %v\n", true)
 					return nil
 				}
 				if !strings.HasSuffix(info.Name(), ".desktop") {
-					fmt.Printf("HasSuffix is not nil: %v\n", !strings.HasSuffix(info.Name(), ".desktop"))
 					return nil
 				}
 
