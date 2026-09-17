@@ -17,6 +17,29 @@ func HomeDir() (string, error) {
 	return path.Clean(homeDir) + "/", nil
 }
 
+func ConfigFilePath(file string) (string, error) {
+	homePath, err := HomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	fullPath := filepath.Join(homePath, ".config", "spymux", file)
+
+	info, err := os.Stat(fullPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", fmt.Errorf("config file does not exist: %s", fullPath)
+		}
+		return "", fmt.Errorf("failed checking config cache path %s: %w", fullPath, err)
+	}
+
+	if info.IsDir() {
+		return "", fmt.Errorf("expected a file but found a directory at: %s", fullPath)
+	}
+
+	return fullPath, nil
+}
+
 func WalCachePath(file string) (string, error) {
 	homePath, err := HomeDir()
 	if err != nil {

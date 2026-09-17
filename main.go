@@ -22,12 +22,18 @@ func main() {
 		fmt.Printf("Error Loading theme: %s", themeErr)
 	}
 
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		fmt.Printf("Error loading config: %v\n", err)
+		os.Exit(1)
+	}
+
 	if *dirMode {
 		runSpyDir(theme)
 		return
 	}
 	if *binMode {
-		runSpyBin(theme)
+		runSpyBin(theme, cfg.Spybin)
 		return
 	}
 
@@ -43,7 +49,7 @@ func main() {
 	case tui.ModeSpyDir:
 		runSpyDir(theme)
 	case tui.ModeSpyBin:
-		runSpyBin(theme)
+		runSpyBin(theme, cfg.Spybin)
 	default:
 		os.Exit(0)
 	}
@@ -57,8 +63,12 @@ func runSpyDir(theme *config.AppTheme) {
 	}
 }
 
-func runSpyBin(theme *config.AppTheme) {
-	p := tea.NewProgram(spybin.InitialModel(theme), tea.WithAltScreen())
+func runSpyBin(theme *config.AppTheme, cfg config.SpybinConfig) {
+	p := tea.NewProgram(
+		spybin.InitialModel(theme, cfg),
+		tea.WithAltScreen(),
+	)
+
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("spybin failed: %v\n", err)
 		os.Exit(1)

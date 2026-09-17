@@ -92,7 +92,14 @@ func ScanDesktopFiles() ([]AppEntry, error) {
 				displayName := fmt.Sprintf("%s %s", icon, name)
 				if !seen[displayName] {
 					seen[displayName] = true
-					results = append(results, AppEntry{DisplayName: displayName, ExecCmd: execCmd})
+					results = append(
+						results,
+						AppEntry{
+							Name:        name,
+							DisplayName: displayName,
+							ExecCmd:     execCmd,
+						},
+					)
 				}
 				return nil
 			})

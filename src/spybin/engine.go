@@ -11,12 +11,14 @@ import (
 )
 
 type AppEntry struct {
+	Name        string
 	DisplayName string
 	ExecCmd     string
 }
 
 type Model struct {
-	Theme *config.AppTheme
+	Theme  *config.AppTheme
+	Config config.SpybinConfig
 
 	Err error
 
@@ -28,11 +30,12 @@ type Model struct {
 	Height   int
 }
 
-func InitialModel(theme *config.AppTheme) Model {
+func InitialModel(theme *config.AppTheme, config config.SpybinConfig) Model {
 	apps, err := ScanDesktopFiles()
 
 	return Model{
 		Theme:    theme,
+		Config:   config,
 		Apps:     apps,
 		Filtered: apps,
 		Err:      err,
@@ -44,6 +47,7 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -64,7 +68,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyEnter:
 			if len(m.Filtered) > 0 && m.Index < len(m.Filtered) {
-				launchApp(m.Filtered[m.Index].ExecCmd)
+				target := m.Filtered[m.Index]
+				confExecCmd := m.Config.Apps
+				for i := range confExecCmd {
+					if target.Name == confExecCmd[i].Name {
+						launchApp(confExecCmd[i].Cmd)
+						return m, tea.Quit
+					}
+				}
+				launchApp(target.ExecCmd)
 				return m, tea.Quit
 			}
 			return m, nil
@@ -108,7 +120,7 @@ func (m Model) View() string {
 	}
 
 	searchBars := searchBar(m)
-	horizontalLine := lipgloss.NewStyle().Foreground(m.Theme.Color(10)).Render(strings.Repeat("⠉", m.Width))
+	horizontalLine := lipgloss.NewStyle().Foreground(m.Theme.Color(10)).Render(strings.Repeat("━", m.Width))
 	list := selectionList(m)
 
 	renderedView := lipgloss.JoinVertical(

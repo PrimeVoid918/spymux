@@ -17,7 +17,7 @@ func launchApp(execCmd string) {
 	cmd.Stderr = nil
 	cmd.Stdin = nil
 
-	_ = cmd.Start()
+	_ = cmd.Start() //! can return an error
 	if cmd.Process != nil {
 		_ = cmd.Process.Release()
 	}
