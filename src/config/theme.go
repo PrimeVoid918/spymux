@@ -89,7 +89,29 @@ func (t *AppTheme) FG() lipgloss.Color        { return t.fg }
 func (t *AppTheme) Accent() lipgloss.Color    { return t.accent }
 func (t *AppTheme) SubAccent() lipgloss.Color { return t.subAccent }
 
-func (t *AppTheme) Color(index int) lipgloss.Color {
+type PaletteIndex int
+
+const (
+	Color0 PaletteIndex = iota
+	Color1
+	Color2
+	Color3
+	Color4
+	Color5
+	Color6
+	Color7
+	Color8
+	Color9
+	Color10
+	Color11
+	Color12
+	Color13
+	Color14
+	Color15
+)
+
+// Based on Wals theme
+func (t *AppTheme) Color(index PaletteIndex) lipgloss.Color {
 	if index < 0 || index > 15 {
 		return t.fg
 	}

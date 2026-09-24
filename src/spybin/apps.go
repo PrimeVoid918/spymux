@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	icons "spymux/src/icons"
 	"strings"
 )
 
@@ -88,7 +89,7 @@ func ScanDesktopFiles() ([]AppEntry, error) {
 				}
 
 				// TODO: refactor for icon domain later
-				icon := getIcon(name)
+				icon := ResolveAppIcons(name)
 				displayName := fmt.Sprintf("%s %s", icon, name)
 				if !seen[displayName] {
 					seen[displayName] = true
@@ -217,4 +218,29 @@ func isBlacklistedApp(name string) bool {
 		}
 	}
 	return false
+}
+
+func ResolveAppIcons(name string) string {
+	appIcons := icons.New().Apps
+	low := strings.ToLower(name)
+	switch {
+	case strings.Contains(low, "browser"), strings.Contains(low, "zen"), strings.Contains(low, "chrome"), strings.Contains(low, "tor"):
+		return appIcons.Browser
+	case strings.Contains(low, "terminal"), strings.Contains(low, "kitty"):
+		return appIcons.Terminal
+	case strings.Contains(low, "steam"), strings.Contains(low, "game"):
+		return appIcons.Game
+	case strings.Contains(low, "code"), strings.Contains(low, "obsidian"):
+		return appIcons.CodeEditor
+	case strings.Contains(low, "torrent"), strings.Contains(low, "qbittorrent"):
+		return appIcons.Torrent
+	case strings.Contains(low, "bluetooth"), strings.Contains(low, "overskride"):
+		return appIcons.Bluetooth
+	case strings.Contains(low, "file"), strings.Contains(low, "ncdu"):
+		return appIcons.FileManager
+	case strings.Contains(low, "audio"), strings.Contains(low, "mixer"), strings.Contains(low, "wiremix"):
+		return appIcons.Audio
+	default:
+		return appIcons.Default
+	}
 }

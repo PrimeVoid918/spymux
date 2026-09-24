@@ -131,28 +131,3 @@ func (m Model) View() string {
 	)
 	return renderedView
 }
-
-// TODO: refactor for icon domain later
-func getIcon(name string) string {
-	low := strings.ToLower(name)
-	switch {
-	case strings.Contains(low, "browser"), strings.Contains(low, "zen"), strings.Contains(low, "chrome"), strings.Contains(low, "tor"):
-		return "󰈹"
-	case strings.Contains(low, "terminal"), strings.Contains(low, "kitty"):
-		return ""
-	case strings.Contains(low, "steam"), strings.Contains(low, "game"):
-		return "󰊴"
-	case strings.Contains(low, "code"), strings.Contains(low, "obsidian"):
-		return "󱞂"
-	case strings.Contains(low, "torrent"), strings.Contains(low, "qbittorrent"):
-		return "󱘖"
-	case strings.Contains(low, "bluetooth"), strings.Contains(low, "overskride"):
-		return "󰂯"
-	case strings.Contains(low, "file"), strings.Contains(low, "ncdu"):
-		return "󱏒"
-	case strings.Contains(low, "audio"), strings.Contains(low, "mixer"), strings.Contains(low, "wiremix"):
-		return "󰓃"
-	default:
-		return "󰲋"
-	}
-}

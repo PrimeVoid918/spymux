@@ -42,6 +42,14 @@ func selectionList(m Model) string {
 		endIdx = len(m.Filtered)
 	}
 
+	// icons := &icons.Glyphs{
+	// 	Theme: m.Theme,
+	// }
+
+	// icons.Render("asd", 2)
+
+	// search := icons.SearchIcon(1)
+
 	selectorIcon := lipgloss.NewStyle().Foreground(m.Theme.Color(14)).Render(" █")
 	selectedRow := lipgloss.NewStyle().Foreground(m.Theme.Color(14)).Underline(true)
 	notSelectedRow := lipgloss.NewStyle().Foreground(m.Theme.Color(7))
