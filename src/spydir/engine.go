@@ -14,7 +14,9 @@ import (
 )
 
 type Model struct {
-	Theme           *config.AppTheme
+	Theme  *config.AppTheme
+	Config config.SpydirConfig
+
 	SelectedStyle   lipgloss.Style
 	NormalStyle     lipgloss.Style
 	FaintStyle      lipgloss.Style
@@ -39,9 +41,9 @@ type ZoxideDirs struct {
 	Path  string
 }
 
-func InitialModel(theme *config.AppTheme) Model {
+func InitialModel(theme *config.AppTheme, conf config.SpydirConfig) Model {
 	dirs, err := getZoxideDirs()
-	apps := config.LoadApps()
+	apps := conf.Apps
 
 	selectedStyle := lipgloss.NewStyle().Foreground(theme.Color(0)).Background(theme.Accent()).Bold(true)
 	normalStyle := lipgloss.NewStyle().Foreground(theme.Color(7))
@@ -49,10 +51,11 @@ func InitialModel(theme *config.AppTheme) Model {
 	matchCountStyle := lipgloss.NewStyle().Foreground(theme.Color(1))
 
 	return Model{
-		Apps:  apps,
-		Dirs:  dirs,
-		Err:   err,
-		Width: 80,
+		Apps:   apps,
+		Config: conf,
+		Dirs:   dirs,
+		Err:    err,
+		Width:  80,
 
 		SelectedStyle:   selectedStyle,
 		NormalStyle:     normalStyle,
@@ -73,17 +76,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
-		case "backspace":
+		case tea.KeyBackspace:
 			if len(m.Query) > 0 {
 				m.Query = m.Query[:len(m.Query)-1]
 			}
 			m.DirIndex = 0
 			return m, nil
 
-		case "left", "right", "up", "down", "enter":
+		case tea.KeyLeft, tea.KeyRight, tea.KeyUp, tea.KeyDown, tea.KeyEnter:
 			return handleKeyNavigation(m, msg.String())
 		}
 
@@ -101,15 +104,20 @@ func (model Model) View() string {
 	var strBuilder strings.Builder
 	modeBar := ""
 
-	for i, app := range model.Apps {
-		if i == model.ModeIndex {
-			token := " " + app.Name + " "
-			modeBar += model.SelectedStyle.Render(token) + " "
-		} else {
-			token := "[" + app.Name + "]"
-			modeBar += model.NormalStyle.Render(token) + " "
+	if len(model.Apps) != 0 {
+		for i, app := range model.Apps {
+			if i == model.ModeIndex {
+				token := " " + app.Name + " "
+				modeBar += model.SelectedStyle.Render(token) + " "
+			} else {
+				token := "[" + app.Name + "]"
+				modeBar += model.NormalStyle.Render(token) + " "
+			}
 		}
+	} else {
+		modeBar = "No applications configured. Add applications to ~/.config/spymux/config.toml."
 	}
+
 	strBuilder.WriteString(padRight(modeBar, model.Width) + "\n")
 
 	matchesStr := model.MatchCountStyle.Render(fmt.Sprintf("%d", len(dirs)))

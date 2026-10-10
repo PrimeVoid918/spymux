@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if *dirMode {
-		runSpyDir(theme)
+		runSpyDir(theme, cfg.Spydir)
 		return
 	}
 	if *binMode {
@@ -47,7 +47,7 @@ func main() {
 	chosenMode := m.(tui.PickerModel).Choice
 	switch chosenMode {
 	case tui.ModeSpyDir:
-		runSpyDir(theme)
+		runSpyDir(theme, cfg.Spydir)
 	case tui.ModeSpyBin:
 		runSpyBin(theme, cfg.Spybin)
 	default:
@@ -55,8 +55,9 @@ func main() {
 	}
 }
 
-func runSpyDir(theme *config.AppTheme) {
-	p := tea.NewProgram(spydir.InitialModel(theme), tea.WithAltScreen())
+func runSpyDir(theme *config.AppTheme, cfg config.SpydirConfig) {
+	p := tea.NewProgram(spydir.InitialModel(theme, cfg), tea.WithAltScreen())
+
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("spydir failed: %v\n", err)
 		os.Exit(1)
