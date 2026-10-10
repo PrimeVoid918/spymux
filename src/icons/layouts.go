@@ -45,13 +45,22 @@ type Lines struct {
 
 func newLines() Lines {
 	return Lines{
+		/*
+			╭─╮
+			│ │
+			╰─╯
+		*/
 		TopLeft:     "╭",
 		TopRight:    "╮",
 		BottomRight: "╯",
 		BottomLeft:  "╰",
+		Horizontal:  "─",
+		Vertical:    "│",
 
-		Horizontal:       "─",
-		Vertical:         "│",
+		/*
+			┌┐
+			└┘
+		*/
 		SharpTopLeft:     "┌",
 		SharpTopRight:    "┐",
 		SharpBottomRight: "┘",

@@ -3,6 +3,7 @@ package spydir
 import (
 	"fmt"
 	config "spymux/src/config"
+	icons "spymux/src/icons"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,6 +17,7 @@ import (
 type Model struct {
 	Theme  *config.AppTheme
 	Config config.SpydirConfig
+	Icons  icons.Icons
 
 	SelectedStyle   lipgloss.Style
 	NormalStyle     lipgloss.Style
@@ -51,12 +53,13 @@ func InitialModel(theme *config.AppTheme, conf config.SpydirConfig) Model {
 	matchCountStyle := lipgloss.NewStyle().Foreground(theme.Color(1))
 
 	return Model{
-		Apps:   apps,
-		Config: conf,
-		Dirs:   dirs,
-		Err:    err,
-		Width:  80,
-
+		Theme:           theme,
+		Apps:            apps,
+		Icons:           icons.New(),
+		Config:          conf,
+		Dirs:            dirs,
+		Err:             err,
+		Width:           80,
 		SelectedStyle:   selectedStyle,
 		NormalStyle:     normalStyle,
 		FaintStyle:      faintStyle,
@@ -100,61 +103,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (model Model) View() string {
-	dirs := model.FilteredDirs()
-	var strBuilder strings.Builder
-	modeBar := ""
-
-	if len(model.Apps) != 0 {
-		for i, app := range model.Apps {
-			if i == model.ModeIndex {
-				token := " " + app.Name + " "
-				modeBar += model.SelectedStyle.Render(token) + " "
-			} else {
-				token := "[" + app.Name + "]"
-				modeBar += model.NormalStyle.Render(token) + " "
-			}
-		}
-	} else {
-		modeBar = "No applications configured. Add applications to ~/.config/spymux/config.toml."
-	}
-
-	strBuilder.WriteString(padRight(modeBar, model.Width) + "\n")
-
-	matchesStr := model.MatchCountStyle.Render(fmt.Sprintf("%d", len(dirs)))
-	stats := fmt.Sprintf(": %s (%s matches)", model.Query, matchesStr)
-	strBuilder.WriteString(padRight(stats, model.Width) + "\n")
-
-	strBuilder.WriteString(model.FaintStyle.Render(strings.Repeat("─", model.Width)) + "\n")
-
-	reservedLines := 4
-	maxVisibleDirs := model.Height - reservedLines
-	if maxVisibleDirs < 1 {
-		maxVisibleDirs = 1
-	}
-
-	start := 0
-	if model.DirIndex >= maxVisibleDirs {
-		start = model.DirIndex - maxVisibleDirs + 1
-	}
-	end := start + maxVisibleDirs
-	if end > len(dirs) {
-		end = len(dirs)
-	}
-
-	for i := start; i < end; i++ {
-		dir := dirs[i]
-		var line string
-		if i == model.DirIndex {
-			rawLine := fmt.Sprintf("> %.2f %s", dir.Score, dir.Path)
-			line = model.SelectedStyle.Render(padRight(rawLine, model.Width))
-		} else {
-			rawLine := fmt.Sprintf(" %.2f %s", dir.Score, dir.Path)
-			line = model.NormalStyle.Render(padRight(rawLine, model.Width))
-		}
-		strBuilder.WriteString(line + "\n")
-	}
-
-	return strings.TrimSuffix(strBuilder.String(), "\n")
+	horizontalLine := lipgloss.NewStyle().Foreground(model.Theme.Color(10)).Render(strings.Repeat("━", model.Width))
+	renderView := lipgloss.JoinVertical(
+		lipgloss.Top,
+		launchApps(model),
+		searchBar(model),
+		horizontalLine,
+		dirList(model),
+		footer(model),
+	)
+	return renderView
 }
 
 func (model Model) FilteredDirs() []ZoxideDirs {
@@ -196,14 +154,6 @@ func launch(app config.App, dir string) {
 	}
 }
 
-func padRight(s string, width int) string {
-	visibleLen := lipgloss.Width(s)
-	if visibleLen >= width {
-		return s
-	}
-	return s + strings.Repeat(" ", width-visibleLen)
-}
-
 func handleKeyNavigation(model Model, msg string) (tea.Model, tea.Cmd) {
 	switch msg {
 	case "left":
@@ -225,7 +175,11 @@ func handleKeyNavigation(model Model, msg string) (tea.Model, tea.Cmd) {
 		if len(dirs) == 0 || len(model.Apps) == 0 {
 			return model, nil
 		}
-		launch(model.Apps[model.ModeIndex], dirs[model.DirIndex].Path)
+		targetDir := dirs[model.DirIndex].Path
+		_ = exec.Command("zoxide", "add", targetDir).Run()
+
+		launch(model.Apps[model.ModeIndex], targetDir)
+
 		return model, tea.Quit
 	}
 	return model, nil
@@ -264,8 +218,4 @@ func getZoxideDirs() ([]ZoxideDirs, error) {
 	}
 
 	return dirs, nil
-}
-
-func readDirContents(dir string) ([]os.DirEntry, error) {
-	return os.ReadDir(dir)
 }

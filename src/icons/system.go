@@ -21,17 +21,19 @@ type System struct {
 	Executable         string
 	Terminal           string
 	Configuration      string
+	Git                string
 	Code               string
+	Script             string
 	Package            string
 
-	Status StatusIcons
-	Arrow  ArrowIcons
+	Status    StatusIcons
+	Arrow     ArrowIcons
+	Powerline PowerlineIcons
 }
 
 func newSystem() System {
 	return System{
 		Search:       "󰍉",
-		ChevronRight: "󰅂",
 		Divider:      "─",
 		ThickDivider: "━",
 
@@ -50,11 +52,14 @@ func newSystem() System {
 		Executable:         "󰞷",
 		Terminal:           "󰆍",
 		Configuration:      "󰒓",
+		Git:                "",
 		Code:               "󰗀",
+		Script:             "",
 		Package:            "󰏗",
 
-		Status: newStatus(),
-		Arrow:  newArrow(),
+		Status:    newStatus(),
+		Arrow:     newArrow(),
+		Powerline: newPowerline(),
 	}
 }
 
@@ -127,5 +132,39 @@ func newArrow() ArrowIcons {
 		UpRight:      "↗",
 		DownRight:    "↘",
 		DownLeft:     "↙",
+	}
+}
+
+type PowerlineIcons struct {
+	LeftBubble  string
+	RightBubble string
+
+	TriangleRight string
+	TriangleLeft  string
+
+	ChevronRight string
+	ChevronLeft  string
+
+	SlantRightTop    string
+	SlantRightBottom string
+	SlantLeftTop     string
+	SlantLeftBottom  string
+}
+
+func newPowerline() PowerlineIcons {
+	return PowerlineIcons{
+		LeftBubble:  "",
+		RightBubble: "",
+
+		TriangleRight: "",
+		TriangleLeft:  "",
+
+		ChevronRight: "",
+		ChevronLeft:  "",
+
+		SlantRightTop:    "",
+		SlantRightBottom: "",
+		SlantLeftTop:     "",
+		SlantLeftBottom:  "",
 	}
 }
