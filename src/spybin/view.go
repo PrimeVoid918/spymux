@@ -3,68 +3,100 @@ package spybin
 import (
 	"fmt"
 	"spymux/src/styles"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 func searchBar(m Model) string {
-	stats := fmt.Sprintf("(%d/%d applications)", len(m.Filtered), len(m.Apps))
-	statsElement := lipgloss.NewStyle().Foreground(m.Theme.Color(12)).Render(stats)
+	icons := m.Icons
+	appIcon := lipgloss.NewStyle().Padding(0, 1).Render(icons.System.Package)
 
-	searchIcon := lipgloss.NewStyle().Foreground(m.Theme.Color(10)).Render(" █")
+	edges := lipgloss.NewStyle()
+	iconAndAppCount := lipgloss.NewStyle().
+		Foreground(m.Theme.Color(0)).
+		Background(m.Theme.Color(3)).
+		Bold(true).
+		Render(fmt.Sprintf("%s%-3d", appIcon, len(m.Filtered)))
+	leftEdge := edges.Foreground(m.Theme.Color(3)).Render(icons.System.Powerline.SlantRightTop)
+	rightEdge := edges.Foreground(m.Theme.Color(3)).Render(icons.System.Powerline.TriangleRight)
+	stats := fmt.Sprintf("%s%s%s: ", leftEdge, iconAndAppCount, rightEdge)
+
 	query := lipgloss.NewStyle().Underline(true).Render(m.Query)
 
-	layout := styles.FlexRow(fmt.Sprintf("%s %s %s", searchIcon, query, statsElement))
+	sideItem := lipgloss.NewStyle().Foreground(m.Theme.Color(12)).Render(strconv.Itoa(len(m.Apps)))
+	leftWidth := stats + query
+	rightWidth := sideItem
 
-	return layout
+	gapMaker := styles.ItemPadding(m.Width, leftWidth, rightWidth)
+	return gapMaker
 }
 
 func selectionList(m Model) string {
-	var result strings.Builder
+	systemIcons := m.Icons.System
 
-	//! original value is -2
-	maxVisibleRows := m.Height - 3
+	reservedLines := 2
+	maxVisibleRows := m.Height - reservedLines
 	if maxVisibleRows <= 0 {
 		// TODO: Handle terminals that are too small to render the application list.
-		// Instead of falling back to an arbitrary number of rows, render a clear
-		// "Terminal too small" message, similar to btop.
 		maxVisibleRows = 10
 	}
 
-	startIdx := 0
+	start := 0
 	if m.Index >= maxVisibleRows {
-		startIdx = m.Index - maxVisibleRows + 1
+		start = m.Index - maxVisibleRows + 1
 	}
 
-	endIdx := startIdx + maxVisibleRows
-	if endIdx > len(m.Filtered) {
-		endIdx = len(m.Filtered)
+	end := start + maxVisibleRows
+	if end > len(m.Filtered) {
+		end = len(m.Filtered)
 	}
 
-	selectorIcon := lipgloss.NewStyle().Foreground(m.Theme.Color(14)).Render(" █")
-	selectedRow := lipgloss.NewStyle().Foreground(m.Theme.Color(14)).Underline(true)
-	notSelectedRow := lipgloss.NewStyle().Foreground(m.Theme.Color(7))
+	appIconContainer := lipgloss.NewStyle().Padding(0, 1)
+	edge := lipgloss.NewStyle()
+	leftEdge := edge.Foreground(m.Theme.Accent()).Render(systemIcons.Powerline.LeftBubble)
+	rightEdge := edge.Render(systemIcons.Powerline.SlantLeftTop)
 
-	for i := startIdx; i < endIdx; i++ {
-		app := m.Filtered[i]
-		content := " " + app.DisplayName
-		remaining := m.Width - lipgloss.Width(content)
+	var list strings.Builder
+	renderedCount := 0
 
-		//! should remove the trailing /n in the end of the entry
-		if i == m.Index {
-			if remaining > 0 {
-				content += strings.Repeat(" ", remaining)
+	if len(m.Filtered) == 0 {
+		list.WriteString("  No matching apps found")
+		renderedCount = 1
+	} else {
+		for i := start; i < end; i++ {
+			app := m.Filtered[i]
+
+			var lineContainer string
+			if i == m.Index {
+				appIcon := appIconContainer.
+					Foreground(m.Theme.Color(0)).
+					Background(m.Theme.Accent()).
+					Render(app.AppIcon)
+				nameContainer := app.Name
+				rightPart := lipgloss.NewStyle().Foreground(m.Theme.Accent()).Underline(true).Bold(true).Render(fmt.Sprintf("%s%s", rightEdge, nameContainer))
+				lineContainer = styles.FlexRow(leftEdge, appIcon, rightPart)
+			} else {
+				appIcon := appIconContainer.
+					Foreground(m.Theme.Color(2)).
+					Render(app.AppIcon)
+				lineContainer = styles.FlexRow(" ", appIcon, " ", app.Name)
 			}
-			result.WriteString(fmt.Sprintf("%s%s", selectorIcon, selectedRow.Render(content)))
-			result.WriteByte('\n')
-		} else {
-			result.WriteString(notSelectedRow.Render(fmt.Sprintf("   %s", app.DisplayName)))
-			result.WriteByte('\n')
+			if i != end && i != start {
+				list.WriteByte('\n')
+			}
+
+			list.WriteString(lineContainer)
+			renderedCount++
 		}
 	}
 
-	layout := styles.FlexCol(result.String())
+	for renderedCount < maxVisibleRows {
+		list.WriteString("\n")
+		renderedCount++
+	}
 
+	layout := styles.FlexCol(list.String())
 	return layout
 }

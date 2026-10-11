@@ -5,20 +5,22 @@ import (
 	"strings"
 
 	config "spymux/src/config"
+	"spymux/src/icons"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type AppEntry struct {
-	Name        string
-	DisplayName string
-	ExecCmd     string
+	Name    string
+	AppIcon string
+	ExecCmd string
 }
 
 type Model struct {
 	Theme  *config.AppTheme
 	Config config.SpybinConfig
+	Icons  icons.Icons
 
 	Err error
 
@@ -36,6 +38,7 @@ func InitialModel(theme *config.AppTheme, config config.SpybinConfig) Model {
 	return Model{
 		Theme:    theme,
 		Config:   config,
+		Icons:    icons.New(),
 		Apps:     apps,
 		Filtered: apps,
 		Err:      err,
@@ -120,7 +123,7 @@ func (m Model) View() string {
 	}
 
 	searchBars := searchBar(m)
-	horizontalLine := lipgloss.NewStyle().Foreground(m.Theme.Color(10)).Render(strings.Repeat("━", m.Width))
+	horizontalLine := lipgloss.NewStyle().Foreground(m.Theme.Color(11)).Render(strings.Repeat("▔", m.Width))
 	list := selectionList(m)
 
 	renderedView := lipgloss.JoinVertical(

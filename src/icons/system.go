@@ -162,9 +162,11 @@ func newPowerline() PowerlineIcons {
 		ChevronRight: "",
 		ChevronLeft:  "",
 
-		SlantRightTop:    "",
-		SlantRightBottom: "",
-		SlantLeftTop:     "",
-		SlantLeftBottom:  "",
+		SlantLeftBottom:  "",
+		SlantRightBottom: "",
+		SlantLeftTop:     "",
+		SlantRightTop:    "",
+		// SlantRightBottom: "",
+		// SlantLeftBottom:  "",
 	}
 }

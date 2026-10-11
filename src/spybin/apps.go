@@ -2,7 +2,6 @@ package spybin
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 	icons "spymux/src/icons"
@@ -90,15 +89,14 @@ func ScanDesktopFiles() ([]AppEntry, error) {
 
 				// TODO: refactor for icon domain later
 				icon := ResolveAppIcons(name)
-				displayName := fmt.Sprintf("%s %s", icon, name)
-				if !seen[displayName] {
-					seen[displayName] = true
+				if !seen[name] {
+					seen[name] = true
 					results = append(
 						results,
 						AppEntry{
-							Name:        name,
-							DisplayName: displayName,
-							ExecCmd:     execCmd,
+							Name:    name,
+							AppIcon: icon,
+							ExecCmd: execCmd,
 						},
 					)
 				}
@@ -122,7 +120,7 @@ func (m *Model) filterApps() {
 	var out []AppEntry
 	q := strings.ToLower(m.Query)
 	for _, app := range m.Apps {
-		if strings.Contains(strings.ToLower(app.DisplayName), q) {
+		if strings.Contains(strings.ToLower(app.Name), q) {
 			out = append(out, app)
 		}
 	}
