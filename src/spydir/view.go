@@ -124,8 +124,8 @@ func footer(m Model) string {
 
 	dirPath := dirs[m.DirIndex].Path
 	form := lipgloss.NewStyle().
-		Foreground(m.Theme.Color(0)).
-		Background(m.Theme.Accent()).
+		Foreground(m.Theme.FG()).
+		Background(m.Theme.Color(2)).
 		Render(dirPath + strings.Repeat(" ", m.Width))
 
 	return styles.FlexRow(form)

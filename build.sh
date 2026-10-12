@@ -6,4 +6,4 @@ if [ -f "$OUTPUT_BIN" ]; then
   rm "$OUTPUT_BIN"
 fi
 
-go bin -o "$OUTPUT_BIN" main.go
+go build -o "$OUTPUT_BIN" main.go
