@@ -137,8 +137,14 @@ func launch(app config.App, dir string) {
 		fullCmd = fmt.Sprintf("%s %s", app.Cmd, dir)
 	}
 
+	luaExpr := fmt.Sprintf(
+		"hl.dsp.exec_cmd(%q)",
+		fullCmd,
+	)
+
 	if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "" {
-		_ = exec.Command("hyprctl", "dispatch", "exec", fullCmd).Run()
+		// _ = exec.Command("hyprctl", "dispatch", "exec", fullCmd).Run()
+		_ = exec.Command("hyprctl", "dispatch", luaExpr).Run()
 		return
 	}
 
